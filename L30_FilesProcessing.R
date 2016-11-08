@@ -161,8 +161,8 @@ rm(wu03.gm)
 ###adjust dist mean & run prediction on wc dataset
 sel = (wc$Origin == wc$Destination)   #inner w/c flows
 wc$distmean = wc$distmean/1000    #convert to Km
-wc$distmean[sel] = wc$distmean[sel]    #adjust for inner flows
-wc$distmean[!sel] = 0.5 * wc$distmean[!sel]    #adjust for inner flows
+wc$distmean[sel] = 0.90 * wc$distmean[sel]    #adjust for inner flows
+wc$distmean[!sel] = 0.6 * wc$distmean[!sel]    #adjust for outer flows
 
 sel10minus= ( (wc$Bicycle + wc$On.foot) <=10) |(wc$Bicycle== 0)  | (wc$On.foot== 0)
 sel10plus=  ! sel10minus
@@ -227,14 +227,15 @@ sum(wc$FootGM)
 sum(wc$CycleGM)
 
 #fix abnormally high flows
-# sel30 = (wc$CycleGM[wc$FootGM!=0]/wc$FootGM[wc$FootGM!=0])>0.3
+# sel= wc$FootGM!=0
+# sel30 = (wc$CycleGM[sel]/wc$FootGM[sel])>0.3 & (wc$CycleGM[sel] +wc$FootGM[sel])>20
 # sum(sel30)
 # x= runif(sum(sel30),0.2,0.3)     #x = rnorm(sum(sel30), 0.25, sd =0.02 )
 # wc$CycleGM[sel30] = x * wc$AllGM[sel30]
 
 
 wc[is.na(wc)] =  0
-sum(wc$CycleGM)     #predicted total cyclists ~300 K
+sum(wc$CycleGM)     #predicted total cyclists ~200 K
 
 
 wc <- wc[wc$FootGM!=0 | wc$CycleGM!=0,]
