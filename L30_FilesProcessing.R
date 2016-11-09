@@ -143,6 +143,8 @@ colnames(wc)
 wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
                    AreaVDMDest  = AreaVDM.y  )
 
+#option to run alternative distances HERE!
+
 #calculate demand per subflow
 wc$xDemand <- wc$DemandOD *  wc$AreaOrig / wc$AreaVDMOrig
 wc$yDemand <-  wc$AreaDest  / wc$AreaVDMDest
