@@ -19,9 +19,11 @@ rf = readRDS('../pct-bigdata/rf_gm1.rds')
 
 #if routes NOT generated:   
 # rf = line2route(l=l, route_fun = route_cyclestreet, base_url = "http://pct.cyclestreets.net", plan = "fastest")
+# rf$id = paste(l$msoa1, l$msoa2)
 # saveRDS(rf, '../pct-bigdata/rf_gm1.rds')
 # 
 # rq = line2route(l=l, route_fun = route_cyclestreet, base_url = "http://pct.cyclestreets.net", plan = "quietest")
+# rq$id = paste(l$msoa1, l$msoa2)
 # saveRDS(rq, '../pct-bigdata/rq_gm1.rds')
 
 ldist= cbind(l@data, rf@data[, c(1:15)])    #rf 15+1 columns now
