@@ -143,6 +143,7 @@ save.dta13(td, './L4/msoa_t2w_sex_GM.dta')
 rm(list=ls())
 
 #NORM. STEP 1:   read pct_lines file + get ready for next stage
+gm.od3 <- readRDS('./L4/gm.od1.rds')
 pct <-read.dta13('./L5/pct_lines_GM.dta')   #pct_lines_GM.dta (generated from scenarios code)
 pct = pct[, c(1:length(names(pct)))]
 
@@ -157,21 +158,23 @@ pct = pct[pct$msoa1!=pct$msoa2, ]     #used to generate outer flows
 
 #read c.Rds
 pathGM <- '../pct-data/greater-manchester/'  #before w/o: -NC
-c <-readRDS(file.path(pathGM,'c.Rds'))   
+cents_gm <-readRDS(file.path(pathGM,'c.Rds'))
+
 
 #replace DF + add cols from c:  geo_code | geo_label | percent_fem | avslope
-c@data = inner_join(c@data[,c('geo_code', 'geo_label','percent_fem','avslope')], cents[,c(1,3:82)], by=c('geo_code'='msoa1') )
-saveRDS(c, '../pct-bigdata/cents-scenarios_GM.rds')
+cents_gm@data = inner_join(cents_gm@data[,c('geo_code', 'geo_label','percent_fem','avslope')], cents[,c(1,3:82)], by=c('geo_code'='msoa1') )
+saveRDS(cents_gm, '../pct-bigdata/cents-scenarios_GM.rds')
 
 ###### TRANSFORMATION required for PCT
 #create Spatial Lines object (pct=DF, c=Spatial Polygons/Points DF).
 pct= stplanr::onewayid(pct, attrib= c(3:82))
 pct=data.frame(pct)
 
-l <- stplanr::od2line(pct,c)
+l <- stplanr::od2line2(pct,cents_gm)
+l = SpatialLinesDataFrame(l, pct)
 
 #Add dist-slope from gm.od1
-l@data = inner_join(l@data,gm.od1[, c(1:5)], by=c('msoa1'='msoa1', 'msoa2'='msoa2') )
+l@data = inner_join(l@data,gm.od3[, c(1:4)], by=c('msoa1'='msoa1', 'msoa2'='msoa2') )
 l$dist= l$dist/1000
 
 

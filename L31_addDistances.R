@@ -16,6 +16,7 @@ l <- stplanr::od2line(gm.od1,c)
 
 #use PCT-Cyclestreet server to calculate distances OR read pre-calculated
 rf = readRDS('../pct-bigdata/rf_gm1.rds')
+rq = readRDS('../pct-bigdata/rq_gm1.rds')
 
 #if routes NOT generated:   
 # rf = line2route(l=l, route_fun = route_cyclestreet, base_url = "http://pct.cyclestreets.net", plan = "fastest")
@@ -29,7 +30,7 @@ rf = readRDS('../pct-bigdata/rf_gm1.rds')
 ldist= cbind(l@data, rf@data[, c(1:15)])    #rf 15+1 columns now
 ldist$length[is.na(ldist$length)]  = 0  #inner flows distances=0
 
-######## ADDING to gm.od: DISTANCE, ELEVATION... 
+######## ADDING to gm.od: DISTANCE-ELEVATION
 rm(gm.od1, rf)
 
 gm.od=cbind(id1=paste(gm.od$msoa1 , gm.od$msoa2), id2=paste(gm.od$msoa2 , gm.od$msoa1),
@@ -53,6 +54,7 @@ gm.od$slope[sel] = gm.od$av_incline[sel]
 sum(is.na(gm.od$dist))   # must be 0 ( all distances/slopes rebuilt)
 sum(is.na(gm.od$slope))   
 
+gm.od = gm.od[,c(3:12)]
 saveRDS(gm.od[,c(3:12)], './L4/gm.od1.Rds')  # flows w. fast route distances/slopes 
 
 

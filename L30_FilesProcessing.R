@@ -119,10 +119,10 @@ rm(pt, area_pt)
 ############# WALKING:  L3 GENERATION FROM L2 (WALK + CYCLING TRAFFIC)
 
 #read gm.od3 to get distances
-gm.od3 <- readRDS('./L4/gm.od1.rds')     #flows file w. fast route distances   
+gm.od3 <- readRDS('./L4/gm.od1.rds')     #flows file w. fast route distances (48425)  
 summary(gm.od3$dist)
 
-
+#add cols: dist-slope
 walkfile <- 'C:/temp/Manchester_Traffic_data/2-L2_L3_level/L2_WC_MSOA.Rds'
 wc <- readRDS(walkfile)  #reads L2_WC_MSOA.Rds
 wc = left_join(wc, gm.od3[ ,c('dist','slope','msoa1', 'msoa2')], by=c("MSOAOrig"='msoa1',"MSOADest"='msoa2'     ))
@@ -143,7 +143,7 @@ colnames(wc)
 wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
                    AreaVDMDest  = AreaVDM.y  )
 
-#option to run alternative distances HERE!
+#option to run real distances HERE!
 
 #calculate demand per subflow
 wc$xDemand <- wc$DemandOD *  wc$AreaOrig / wc$AreaVDMOrig
@@ -168,6 +168,7 @@ wc$distmean[!sel] = 0.6 * wc$distmean[!sel]    #adjust for outer flows
 
 sel10minus= ( (wc$Bicycle + wc$On.foot) <=10) |(wc$Bicycle== 0)  | (wc$On.foot== 0)
 sel10plus=  ! sel10minus
+
 
 #delete OD flows w/o a distance
 wc= wc[! is.na(wc$distmean),]  #typically ALL have distance
