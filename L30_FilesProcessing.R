@@ -229,13 +229,6 @@ wc <- readRDS(walkfile)  #reads L2_WC_MSOA.Rds
 # sum(wc$FootGM)  
 # sum(wc$CycleGM)
 
-#fix abnormally high flows
-# sel= wc$FootGM!=0
-# sel30 = (wc$CycleGM[sel]/wc$FootGM[sel])>0.3 & (wc$CycleGM[sel] +wc$FootGM[sel])>20
-# sum(sel30)
-# x= runif(sum(sel30),0.2,0.3)     #x = rnorm(sum(sel30), 0.25, sd =0.02 )
-# wc$CycleGM[sel30] = x * wc$AllGM[sel30]
-
 
 wc[is.na(wc)] =  0
 sum(wc$CycleGM)     #predicted total cyclists ~200 K

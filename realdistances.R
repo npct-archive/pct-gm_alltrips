@@ -19,34 +19,41 @@ wc <-left_join(wc, wu03.gm, by=c('MSOAOrig'='msoa1','MSOADest'='msoa2'))
 wc[is.na(wc)] = 0
 rm(wu03.gm)
 
+###### adjustment algorithm
+sum(wc$DemandOD)
+wc$dist = wc$dist/1000    #convert to Km
+wc$distmean = wc$distmean/1000    #convert to Km
+#wc$DemandOD = wc$DemandOD 
+
+
+
 ###adjust dist mean & run prediction on wc dataset
 sel = (wc$Origin == wc$Destination)   #inner w/c flows
 sum(sel)
-wc$distmean = wc$distmean/1000    #convert to Km
-wc$distmean[sel] = 0.90 * wc$distmean[sel]    #adjust for inner flows
-wc$distmean[!sel] = 0.6 * wc$distmean[!sel]    #adjust for outer flows
+wc$dist[sel] = 0.90 * wc$dist[sel]    #adjust for inner flows
+wc$dist[!sel] = 0.6 * wc$dist[!sel]    #adjust for outer flows
 
 sel10minus= ( (wc$Bicycle + wc$On.foot) <=10) |(wc$Bicycle== 0)  | (wc$On.foot== 0)
 sel10plus=  ! sel10minus
 sum(sel10plus)       #flows w. Census data
 
 #delete OD flows w/o a distance
-wc= wc[! is.na(wc$distmean),]  #typically ALL have distance
+wc= wc[! is.na(wc$dist),]  #typically ALL have distance
 wc$CycleGM = 0
 
 
 
 for (i in c(1, 2))   {
     
-    # distmean ranges for prediction
+    # dist ranges for prediction
     if (i==1) {sel = wc$DemandOD !=0 & sel10minus
     }   else { sel = wc$DemandOD !=0 & sel10plus }        #apply only to flows with 'potential' cyclists
     
-    sel1 = sel & (wc$distmean>= 0) & (wc$distmean< 3)   ; sel1factor = 0.025
-    sel2 = sel & (wc$distmean>= 3) & ( wc$distmean <  6)     ; sel2factor = 0.339
-    sel3 = sel & (wc$distmean>= 6) &  (wc$distmean <  10)    ; sel3factor = 1.30
-    sel4 = sel & (wc$distmean>= 10) & (wc$distmean <  15)  
-    sel5 = sel & (wc$distmean>= 15)
+    sel1 = sel & (wc$dist>= 0) & (wc$dist< 3)   ; sel1factor = 0.025
+    sel2 = sel & (wc$dist>= 3) & ( wc$dist <  6)     ; sel2factor = 0.339
+    sel3 = sel & (wc$dist>= 6) &  (wc$dist <  10)    ; sel3factor = 1.30
+    sel4 = sel & (wc$dist>= 10) & (wc$dist <  15)  
+    sel5 = sel & (wc$dist>= 15)
     
     
     if (i==1)   {  #flows w. insufficient Census data
@@ -71,7 +78,18 @@ for (i in c(1, 2))   {
 }
 
 
-wc$CycleGM[wc$CycleGM > wc$FootGM]= wc$FootGM    #no negative totals for w+c
+dropcols = grep(pattern = 'sel',x = ls())
+rm(list=ls()[dropcols])
+
+#fix abnormally high flows
+# sel= wc$FootGM!=0
+# sel30 = (wc$CycleGM[sel]/wc$FootGM[sel])>0.3 & (wc$CycleGM[sel] +wc$FootGM[sel])>20
+# sum(sel30)
+# x= runif(sum(sel30),0.2,0.3)     #x = rnorm(sum(sel30), 0.25, sd =0.02 )
+# wc$CycleGM[sel30] = x * wc$AllGM[sel30]
+
+
+wc$CycleGM[wc$CycleGM > wc$DemandOD]= wc$DemandOD    #no negative totals for w+c
 wc$FootGM = wc$DemandOD - wc$CycleGM
 sum(wc$FootGM==0)
 
@@ -93,14 +111,8 @@ wc$xyFoot <- wc$xFoot * wc$yFoot
 sum(wc$xyFoot)
 
 #aggregate cycling / walking per MSOA
-wc1 <-aggregate(wc$xyFoot ,by=list(wc$MSOAOrig,wc$MSOADest), FUN=sum, na.rm=T)
-colnames(wc1) <- c('MSOAOrig','MSOADest','FootGM')
-wc2 <-aggregate(wc$xyCycle ,by=list(wc$MSOAOrig,wc$MSOADest), FUN=sum, na.rm=T)
-colnames(wc2) <- c('MSOAOrig','MSOADest','CycleGM')
-
-
-wc= cbind(wc1,CycleGM=wc2$CycleGM)
-wc$CycleGM <- trunc(wc$CycleGM)
+wc <-aggregate(wc[ , c('xyFoot','xyCycle')] ,by=list(wc$MSOAOrig,wc$MSOADest), FUN=sum, na.rm=T)
+colnames(wc) <- c('MSOAOrig','MSOADest','FootGM', 'CycleGM')
 
 wc[,c("FootGM","CycleGM")] = round(wc[,c("FootGM","CycleGM")], 0)
 

@@ -16,6 +16,8 @@ wc.agg.msoa1=wc.agg.msoa1[-del.rows, ]
 del.rows = grep(pattern ='W',x = wc.agg.msoa1$MSOADest,value = F )
 wc.agg.msoa1=wc.agg.msoa1[-del.rows, ]
 
+
+
 #read ukmsoas 
 pathGM <- '../pct-bigdata/'  #before w/o: -NC
 ukmsoas = readRDS(file.path(pathGM,'ukmsoas-scenarios.Rds'))

@@ -18,6 +18,10 @@ l <- stplanr::od2line(gm.od1,c)
 rf = readRDS('../pct-bigdata/rf_gm1.rds')
 rq = readRDS('../pct-bigdata/rq_gm1.rds')
 
+#check all lines are there
+gm.od1$id = paste(gm.od1$msoa1, gm.od1$msoa2)
+(sum(gm.od1$id %in% rf$id) == nrow(gm.od1))   #must be  TRUE
+
 #if routes NOT generated:   
 # rf = line2route(l=l, route_fun = route_cyclestreet, base_url = "http://pct.cyclestreets.net", plan = "fastest")
 # rf$id = paste(l$msoa1, l$msoa2)

@@ -2,7 +2,7 @@ library("readstata13")
 library(dplyr)
 library(stplanr)   #install from github
 
-########PREDICTION of no. of cyclists using 1) Census cyclist/pedestrian ratio + 2) distance 
+######## APPLY mode WEEKLY FACTORs- PREPARE and RUN SCENARIOS
 rm(list=ls())
 gm.od3 <- readRDS('./L4/gm.od1.rds')     #flows file w. fast route distances   
 gm.od3$dist = gm.od3$dist/1000    #convert to Km
@@ -81,8 +81,6 @@ save.dta13(l, './L4/l_scenariosGM.dta')
 #     foot  = v13
 #     other = v14
 
-dropcols = grep(pattern = 'sel',x = ls())
-rm(list=ls()[dropcols])
 
 dropcols = grep(pattern = 'weekly_',x = ls())
 rm(list=ls()[dropcols])
