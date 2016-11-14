@@ -171,6 +171,11 @@ pct=data.frame(pct)
 l <- stplanr::od2line2(pct,cents_gm)
 l = SpatialLinesDataFrame(l, pct)
 
+#add CRS to lines
+proj4string(l) <- CRS("+init=epsg:4326 +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+
+
+
 #Add dist-slope from gm.od1
 l@data = inner_join(l@data,gm.od3[, c(1:4)], by=c('msoa1'='msoa1', 'msoa2'='msoa2') )
 l$dist= l$dist/1000
