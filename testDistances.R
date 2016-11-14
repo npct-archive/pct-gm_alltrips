@@ -73,8 +73,20 @@ wc.agg.od = aggregate(wc$dist,by=list(wc$Origin, wc$Destination), FUN=mean,na.rm
 names(wc.agg.od)=c('Origin','Destination', 'distmean')
 summary(wc.agg.od$distmean)
 
+wc.agg.od.min = aggregate(wc$dist,by=list(wc$Origin, wc$Destination), FUN=min,na.rm=T)
+names(wc.agg.od.min)=c('Origin','Destination', 'distmin')
+summary(wc.agg.od.min$distmin)
+
+wc.agg.od.max = aggregate(wc$dist,by=list(wc$Origin, wc$Destination), FUN=max,na.rm=T)
+names(wc.agg.od.max)=c('Origin','Destination', 'distmax')
+summary(wc.agg.od.max$distmax)
+
+
 #add distmean to wc flows
 wc = inner_join(wc, wc.agg.od, by=c("Origin" = "Origin", "Destination" = "Destination"))
-rm(wc.agg.od)
+wc = inner_join(wc, wc.agg.od.min, by=c("Origin" = "Origin", "Destination" = "Destination"))
+wc = inner_join(wc, wc.agg.od.max, by=c("Origin" = "Origin", "Destination" = "Destination"))
+
+rm(wc.agg.od,wc.agg.od.min, wc.agg.od.max)
 
 rm(wc.agg.msoa, wc.agg.msoa1,wc.dist)

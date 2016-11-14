@@ -1,5 +1,7 @@
-
+#########################################
 #PREDICT BASED ON REAL DISTANCES
+#########################################
+
 pathGM <- '../pct-data/greater-manchester/'
 c <-readRDS(file.path(pathGM,'c.Rds'))
 c.df <-c@data
@@ -10,6 +12,7 @@ wc <-inner_join(wc, c.df[,1:2], by=c('MSOAOrig'='geo_code'))
 wc <-inner_join(wc, c.df[,1:2], by=c('MSOADest'='geo_code'))
 sum(wc$DemandOD)   #inner G.M. demand=7.48 M
 rm(c, c.df)
+#wc=wc[wc$dist<30000, ]
 
 #read wu03 (Census)
 wu03.gm = readRDS('./L4/wu03.gm.rds')      # Census flows GM
@@ -23,8 +26,10 @@ rm(wu03.gm)
 sum(wc$DemandOD)
 wc$dist = wc$dist/1000    #convert to Km
 wc$distmean = wc$distmean/1000    #convert to Km
-#wc$DemandOD = wc$DemandOD 
-
+# wc$DemandOD = wc$DemandOD OPTIONS:
+# sel=wc$dist!=0 & wc$distmean!=0
+# wc$DemandOD[sel]= wc$DemandOD[sel] * (wc$distmean[sel] / wc$dist[sel])^2.5
+# dist=distmin | dist= distmean | dist= constant * distmean
 
 
 ###adjust dist mean & run prediction on wc dataset
@@ -77,6 +82,7 @@ for (i in c(1, 2))   {
     
 }
 
+sum(wc$CycleGM)
 
 dropcols = grep(pattern = 'sel',x = ls())
 rm(list=ls()[dropcols])
@@ -119,4 +125,5 @@ wc[,c("FootGM","CycleGM")] = round(wc[,c("FootGM","CycleGM")], 0)
 #check & roundings
 sum(wc$FootGM)  
 sum(wc$CycleGM)
+
 
