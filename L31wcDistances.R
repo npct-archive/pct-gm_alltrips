@@ -88,5 +88,6 @@ wc = inner_join(wc, wc.agg.od.min, by=c("Origin" = "Origin", "Destination" = "De
 wc = inner_join(wc, wc.agg.od.max, by=c("Origin" = "Origin", "Destination" = "Destination"))
 
 rm(wc.agg.od,wc.agg.od.min, wc.agg.od.max)
-
 rm(wc.agg.msoa, wc.agg.msoa1,wc.dist)
+
+saveRDS(wc, file.path('./L3/L3_wcdist.Rds'))

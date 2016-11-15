@@ -33,9 +33,6 @@ gm.od3$AllGM = gm.od3$CarDriver + gm.od3$CarPassenger + gm.od3$BusGM + gm.od3$Fo
 ########### PREPARE for SCENARIOS GENERATION
 l <- gm.od3[,1:10]
 
-#gm.od3.Rds contains the no. of cyclists per each GM flow (intraflows included?)
-saveRDS(gm.od3, './L4/gm.od3.rds')     #gm.od3.Rds
-rm(gm.od3)
 
 #rename-sort-add cols to match l.Rds in PCT
 l  = dplyr::rename(l,   all = AllGM,

@@ -1,5 +1,6 @@
+
 #########################################
-#PREDICT BASED ON REAL DISTANCES
+#PREDICTION BASED ON REAL DISTANCES
 #########################################
 
 pathGM <- '../pct-data/greater-manchester/'
@@ -14,6 +15,29 @@ sum(wc$DemandOD)   #inner G.M. demand=7.48 M
 rm(c, c.df)
 #wc=wc[wc$dist<30000, ]
 
+###### adjustment algorithm
+# wc$DemandOD = wc$DemandOD OPTIONS:
+# sel=wc$dist!=0 & wc$distmean!=0
+# wc$DemandOD[sel]= wc$DemandOD[sel] * (wc$distmean[sel] / wc$dist[sel])^2.5
+# dist=distmin | dist= distmean | dist= constant * distmean
+
+wc = inner_join(wc, area_vdm[c("VDMZone", "AreaVDM")],  by=c("Origin" = "VDMZone") )
+wc = inner_join(wc, area_vdm[c("VDMZone", "AreaVDM")],  by=c("Destination" = "VDMZone") )
+colnames(wc)
+wc = dplyr::rename(.data = wc,  AreaVDMOrig = AreaVDM.x,
+                                AreaVDMDest  = AreaVDM.y  )
+
+
+wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-0.5*wc$dist)
+wc$DemandOD2 = 0.3 * wc$DemandOD * (wc$AreaOrig*wc$AreaDest) / (wc$AreaVDMOrig * wc$AreaVDMDest)
+
+wc$DemandOD = wc$DemandOD1 + wc$DemandOD2
+
+
+#delete OD flows w/o a distance
+wc= wc[! is.na(wc$dist),]  #typically ALL have distance
+wc$CycleGM = 0
+
 #read wu03 (Census)
 wu03.gm = readRDS('./L4/wu03.gm.rds')      # Census flows GM
 
@@ -22,29 +46,10 @@ wc <-left_join(wc, wu03.gm, by=c('MSOAOrig'='msoa1','MSOADest'='msoa2'))
 wc[is.na(wc)] = 0
 rm(wu03.gm)
 
-###### adjustment algorithm
+
 sum(wc$DemandOD)
 wc$dist = wc$dist/1000    #convert to Km
 wc$distmean = wc$distmean/1000    #convert to Km
-# wc$DemandOD = wc$DemandOD OPTIONS:
-# sel=wc$dist!=0 & wc$distmean!=0
-# wc$DemandOD[sel]= wc$DemandOD[sel] * (wc$distmean[sel] / wc$dist[sel])^2.5
-# dist=distmin | dist= distmean | dist= constant * distmean
-
-
-###adjust dist mean & run prediction on wc dataset
-sel = (wc$Origin == wc$Destination)   #inner w/c flows
-sum(sel)
-wc$dist[sel] = 0.90 * wc$dist[sel]    #adjust for inner flows
-wc$dist[!sel] = 0.6 * wc$dist[!sel]    #adjust for outer flows
-
-sel10minus= ( (wc$Bicycle + wc$On.foot) <=10) |(wc$Bicycle== 0)  | (wc$On.foot== 0)
-sel10plus=  ! sel10minus
-sum(sel10plus)       #flows w. Census data
-
-#delete OD flows w/o a distance
-wc= wc[! is.na(wc$dist),]  #typically ALL have distance
-wc$CycleGM = 0
 
 
 
@@ -98,12 +103,6 @@ rm(list=ls()[dropcols])
 wc$CycleGM[wc$CycleGM > wc$DemandOD]= wc$DemandOD    #no negative totals for w+c
 wc$FootGM = wc$DemandOD - wc$CycleGM
 sum(wc$FootGM==0)
-
-wc = inner_join(wc, area_vdm[c("VDMZone", "AreaVDM")],  by=c("Origin" = "VDMZone") )
-wc = inner_join(wc, area_vdm[c("VDMZone", "AreaVDM")],  by=c("Destination" = "VDMZone") )
-colnames(wc)
-wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
-                   AreaVDMDest  = AreaVDM.y  )
 
 
 wc$xCycle <- wc$CycleGM *  wc$AreaOrig / wc$AreaVDMOrig

@@ -294,7 +294,7 @@ gm.od <- gm.od[,c(1:2,8,3:7)]
 saveRDS(gm.od, './L4/gm.od.rds')
 
 #only execute if not run before
-source('L31_addDistances.R')   #add distances to flows using stplanr (latest, from github)
+#source('L31_addDistances.R')   #add distances to flows using stplanr (latest, from github)
 rm(list=ls())
 
 
