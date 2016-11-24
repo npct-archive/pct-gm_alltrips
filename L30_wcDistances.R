@@ -68,7 +68,7 @@ wc$nodes =NULL
 wc = inner_join(wc, wc.agg.msoa[,c("MSOAOrig","MSOADest","nodes", "dist")],
                 by=c("MSOAOrig" ="MSOAOrig", "MSOADest" = "MSOADest"))
 
-#calculate distance mean per O-D pair
+#calculate distances  per O-D pair: dist. mean, dist min, dist max
 wc.agg.od = aggregate(wc$dist,by=list(wc$Origin, wc$Destination), FUN=mean,na.rm=T)
 names(wc.agg.od)=c('Origin','Destination', 'distmean')
 summary(wc.agg.od$distmean)

@@ -13,6 +13,7 @@ c <-readRDS(file.path(pathGM,'c.Rds'))
 
 gm.od1 = data.frame(gm.od1)
 l <- stplanr::od2line(gm.od1,c)
+saveRDS(l, './L4/l_oneway.Rds')  # flows one way w. fast route distances/slopes 
 
 #use PCT-Cyclestreet server to calculate distances OR read pre-calculated
 rf = readRDS('../pct-bigdata/rf_gm1.rds')

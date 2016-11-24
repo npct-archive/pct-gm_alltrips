@@ -19,7 +19,7 @@ wc =wc[wc$dist<30000, ]
 wcTotal = 2691242   #calculate real by aggregating 
 
 ###### adjustment algorithm
-preDemand = sum(wc$DemandOD)
+demandPre = sum(wc$DemandOD)
 wc$dist = wc$dist/1000    #convert to Km
 wc$distmean = wc$distmean/1000    #convert to Km
 
@@ -32,16 +32,22 @@ wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
 
 #estimate demand by area + by proximity
 wc$Demandold= wc$DemandOD
-wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-0.8 * wc$dist)
+#wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-1.1 * wc$dist)
+wc$DemandOD1 = 0.7 * wc$DemandOD * 
+    exp(2.3431 + (-1.7623 * wc$dist) + (0.14173 * wc$dist^2) + (-0.0035273 * wc$dist^3))/  (1+ exp(2.3431 + (-1.7623 * wc$dist) + (0.14173 * wc$dist^2) + (-0.0035273 * wc$dist^3)))
+
 wc$DemandOD2 = 0.3 * wc$DemandOD * (wc$AreaOrig * wc$AreaDest)  / (wc$AreaVDMOrig*wc$AreaVDMDest)
 
 wc$DemandOD = wc$DemandOD1 + wc$DemandOD2
-afterDemand =sum(wc$DemandOD)    #variation after double estimate
+demandPost =sum(wc$DemandOD)    #variation after double estimate
 
-wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$Origin, wc$Destination), FUN=sum, na.rm=T)
+wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$Origin, wc$Destination), FUN=sum, na.rm=T)   #ERROR !! this should be aggr. by MSOAOrig-MSOADest
+#wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$MSOAOrig, wc$MSOADest), FUN=sum, na.rm=T)
 names(wc.agg) = c('Origin', 'Destination', 'DemandAfter')
+#names(wc.agg) = c('MSOAOrig', 'MSOADest', 'DemandAfter')
 
 wc= inner_join(wc, wc.agg, by=c("Origin" = "Origin", "Destination" = "Destination"))
+wc= inner_join(wc, wc.agg, by=c("MSOAOrig" = "MSOAOrig", "MSOADest" = "MSOADest")  )
 wc$DemandOD = wc$DemandOD * wc$Demandold / wc$DemandAfter
 
 #wc$DemandOD = wc$DemandOD * wcTotal / afterDemand

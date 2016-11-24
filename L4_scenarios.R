@@ -4,15 +4,15 @@ library(stplanr)   #install from github
 
 ######## APPLY mode WEEKLY FACTORs- PREPARE and RUN SCENARIOS
 rm(list=ls())
-gm.od3 <- readRDS('./L4/gm.od1.rds')     #flows file w. fast route distances   
-gm.od3$dist = gm.od3$dist/1000    #convert to Km
+gm.od1 <- readRDS('./L4/gm.od1.rds')     #flows file w. fast route distances   
+gm.od1$dist = gm.od1$dist/1000    #convert to Km
 
 #delete OD flows w/o a distance
-gm.od3= gm.od3[! is.na(gm.od3$dist),]
+gm.od1= gm.od1[! is.na(gm.od1$dist),]
 
-sum(gm.od3$CycleGM)
-sum(gm.od3$CycleGM)/ sum(gm.od3$AllGM)
-summary(gm.od3$CycleGM/gm.od3$AllGM  )
+sum(gm.od1$CycleGM)
+sum(gm.od1$CycleGM)/ sum(gm.od1$AllGM)
+summary(gm.od1$CycleGM/gm.od1$AllGM  )
 
 #weekly factors per mode
 weekly_carDriver = 6.57
@@ -21,17 +21,17 @@ weekly_walking = 6.77
 weekly_cycling = 7.53
 weekly_pt      = 6.35
 
-gm.od3$CarDriver =    weekly_carDriver * gm.od3$CarDriver 
-gm.od3$CarPassenger =     weekly_carPassenger * gm.od3$CarPassenger
-gm.od3$BusGM   =  weekly_pt      * gm.od3$BusGM   
-gm.od3$FootGM   = weekly_walking * gm.od3$FootGM
-gm.od3$CycleGM  =   weekly_cycling * gm.od3$CycleGM
+gm.od1$CarDriver =    weekly_carDriver * gm.od1$CarDriver 
+gm.od1$CarPassenger =     weekly_carPassenger * gm.od1$CarPassenger
+gm.od1$BusGM   =  weekly_pt      * gm.od1$BusGM   
+gm.od1$FootGM   = weekly_walking * gm.od1$FootGM
+gm.od1$CycleGM  =   weekly_cycling * gm.od1$CycleGM
 
-gm.od3[ , c(6:10)] = round(gm.od3[ , c(6:10)], 0)
-gm.od3$AllGM = gm.od3$CarDriver + gm.od3$CarPassenger + gm.od3$BusGM + gm.od3$FootGM + gm.od3$CycleGM
+gm.od1[ , c(6:10)] = round(gm.od1[ , c(6:10)], 0)
+gm.od1$AllGM = gm.od1$CarDriver + gm.od1$CarPassenger + gm.od1$BusGM + gm.od1$FootGM + gm.od1$CycleGM
 
 ########### PREPARE for SCENARIOS GENERATION
-l <- gm.od3[,1:10]
+l <- gm.od1[,1:10]
 
 
 #rename-sort-add cols to match l.Rds in PCT
@@ -138,7 +138,7 @@ save.dta13(td, './L4/msoa_t2w_sex_GM.dta')
 rm(list=ls())
 
 #NORM. STEP 1:   read pct_lines file + get ready for next stage
-gm.od3 <- readRDS('./L4/gm.od1.rds')
+gm.od1 <- readRDS('./L4/gm.od1.rds')
 pct <-read.dta13('./L5/pct_lines_GM.dta')   #pct_lines_GM.dta (generated from scenarios code)
 pct = pct[, c(1:length(names(pct)))]
 
@@ -174,7 +174,7 @@ proj4string(l) <- CRS("+init=epsg:4326 +proj=longlat +datum=WGS84 +no_defs +ellp
 
 
 #Add dist-slope from gm.od1
-l@data = inner_join(l@data,gm.od3[, c(1:4)], by=c('msoa1'='msoa1', 'msoa2'='msoa2') )
+l@data = left_join(l@data,gm.od1[, c(1:4)], by=c('msoa1'='msoa1', 'msoa2'='msoa2') )
 l$dist= l$dist/1000
 
 
