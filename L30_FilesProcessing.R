@@ -127,14 +127,14 @@ walkfile <- 'C:/temp/Manchester_Traffic_data/2-L2_L3_level/L2_WC_MSOA.Rds'
 wc <- readRDS(walkfile)  #reads L2_WC_MSOA.Rds
 
 ###############################
-###############################
+###############################  calculate dist min/max/mean + predict
 ###############################
 
 
 
 
 wc[is.na(wc)] =  0
-sum(wc$CycleGM)     #predicted total cyclists ~150 K
+sum(wc$CycleGM)     #predicted total cyclists ~200 K
 
 
 wc <- wc[wc$FootGM!=0 | wc$CycleGM!=0,]
@@ -197,7 +197,7 @@ gm.od <- gm.od[,c(1:2,8,3:7)]
 saveRDS(gm.od, './L4/gm.od.rds')
 
 #only execute if not run before
-#source('L31_addDistances.R')   #add distances to flows using stplanr (latest, from github)
+#source('L32_addDistances.R')   #add distances to flows using stplanr (latest, from github)
 rm(list=ls())
 
 

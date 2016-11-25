@@ -1,6 +1,6 @@
 
 #########################################
-#PREDICTION BASED ON REAL DISTANCES
+#PREDICTION BASED ON REAL DISTANCES between MSOAs part of VDMs 
 #########################################
 
 # pathGM <- '../pct-data/greater-manchester/'
@@ -15,8 +15,8 @@
 # rm(c, c.df)
 
 wc = readRDS('./L3/L3_wcdist.Rds')
-wc =wc[wc$dist<30000, ]
-wcTotal = 2691242   #calculate real by aggregating 
+#wc =wc[wc$dist<30000, ]   #assume nobody walks/cycle>30Km
+
 
 ###### adjustment algorithm
 demandPre = sum(wc$DemandOD)
@@ -30,7 +30,7 @@ colnames(wc)
 wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
                    AreaVDMDest  = AreaVDM.y  )
 
-#estimate demand by area + by proximity
+#estimate demand by converted area size + by proximity
 wc$Demandold= wc$DemandOD
 #wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-1.1 * wc$dist)
 wc$DemandOD1 = 0.7 * wc$DemandOD * 
@@ -41,13 +41,13 @@ wc$DemandOD2 = 0.3 * wc$DemandOD * (wc$AreaOrig * wc$AreaDest)  / (wc$AreaVDMOri
 wc$DemandOD = wc$DemandOD1 + wc$DemandOD2
 demandPost =sum(wc$DemandOD)    #variation after double estimate
 
-wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$Origin, wc$Destination), FUN=sum, na.rm=T)   #ERROR !! this should be aggr. by MSOAOrig-MSOADest
+wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$Origin, wc$Destination), FUN=sum, na.rm=T)   #this could be aggr. by MSOAOrig-MSOADest
 #wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$MSOAOrig, wc$MSOADest), FUN=sum, na.rm=T)
 names(wc.agg) = c('Origin', 'Destination', 'DemandAfter')
 #names(wc.agg) = c('MSOAOrig', 'MSOADest', 'DemandAfter')
 
 wc= inner_join(wc, wc.agg, by=c("Origin" = "Origin", "Destination" = "Destination"))
-wc= inner_join(wc, wc.agg, by=c("MSOAOrig" = "MSOAOrig", "MSOADest" = "MSOADest")  )
+#wc= inner_join(wc, wc.agg, by=c("MSOAOrig" = "MSOAOrig", "MSOADest" = "MSOADest")  )
 wc$DemandOD = wc$DemandOD * wc$Demandold / wc$DemandAfter
 
 #wc$DemandOD = wc$DemandOD * wcTotal / afterDemand
@@ -72,7 +72,9 @@ max(td$dist)
 wu03.gm = readRDS('./L4/wu03.gm.rds')      # Census flows GM
 
 #add Census (+12 cols)
+zones= read.csv('./L4/Census_zones.csv')
 wc <-left_join(wc, wu03.gm, by=c('MSOAOrig'='msoa1','MSOADest'='msoa2'))
+wc = left_join(wc, zones[, c('geo_code','cycperc','cycwalk')], by=c("MSOAOrig"="geo_code"))
 wc[is.na(wc)] = 0
 rm(wu03.gm)
 
@@ -103,11 +105,18 @@ for (i in c(1, 2))   {
     if (i==1)   {  #flows w. insufficient Census data
         
         #values as per Anna's table 20-Oct-2015 (replace w. Census MSOA-level cycling%)
-        wc$CycleGM[sel1] = wc$DemandOD[sel1] *   0.0703 * 0.32   
-        wc$CycleGM[sel2] = wc$DemandOD[sel2] *   0.298 * 0.85    
-        wc$CycleGM[sel3] = wc$DemandOD[sel3] *   0.495 * 1.05
-        wc$CycleGM[sel4] = wc$DemandOD[sel4] *   0.92            
+        # wc$CycleGM[sel1] = wc$DemandOD[sel1] *   0.0703 * 0.32
+        # wc$CycleGM[sel2] = wc$DemandOD[sel2] *   0.298 * 0.85
+        # wc$CycleGM[sel3] = wc$DemandOD[sel3] *   0.495 * 1.05
+        # wc$CycleGM[sel4] = wc$DemandOD[sel4] *   0.92
+        # wc$CycleGM[sel5] = wc$DemandOD[sel5] *   1
+        
+        wc$CycleGM[sel1] = wc$DemandOD[sel1] *   wc$cycwalk[sel1] * 0.32
+        wc$CycleGM[sel2] = wc$DemandOD[sel2] *   wc$cycwalk[sel2] * 0.85
+        wc$CycleGM[sel3] = wc$DemandOD[sel3] *   wc$cycwalk[sel3] * 1.05
+        wc$CycleGM[sel4] = wc$DemandOD[sel4] *   0.92
         wc$CycleGM[sel5] = wc$DemandOD[sel5] *   1
+        
         
         
     } else  {   #flows w. enough Census data
@@ -133,14 +142,6 @@ wc$CycleGM[wc$CycleGM > wc$DemandOD]= wc$DemandOD[wc$CycleGM > wc$DemandOD]    #
 wc$FootGM = wc$DemandOD - wc$CycleGM
 sum(wc$FootGM==0)
 sum(wc$FootGM)
-
-
-#fix abnormally high flows
-# sel30 = (wc$CycleGM[sel]/wc$FootGM[sel])>0.3 & (wc$CycleGM[sel] +wc$FootGM[sel])>20
-# sum(sel30)
-# x= runif(sum(sel30),0.2,0.3)     #x = rnorm(sum(sel30), 0.25, sd =0.02 )
-# wc$CycleGM[sel30] = x * wc$AllGM[sel30]
-
 
 #aggregate cycling / walking per MSOA
 wc <-aggregate(wc[ , c('FootGM','CycleGM')] ,by=list(wc$MSOAOrig,wc$MSOADest), FUN=sum, na.rm=T)
