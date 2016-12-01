@@ -127,7 +127,8 @@ walkfile <- 'C:/temp/Manchester_Traffic_data/2-L2_L3_level/L2_WC_MSOA.Rds'
 wc <- readRDS(walkfile)  #reads L2_WC_MSOA.Rds
 
 ###############################
-###############################  calculate dist min/max/mean + predict
+###############################  calculate dist min/max/mean:   L30_wcDistances.R
+###############################  predict:                       L31_predictCycling2.R
 ###############################
 
 
