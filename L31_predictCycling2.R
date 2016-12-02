@@ -14,7 +14,6 @@
 # sum(wc$DemandOD)   #inner G.M. demand=7.48 M
 # rm(c, c.df)
 
-library(dplyr)
 wc = readRDS('./L3/L3_wcdist.Rds')
 #wc =wc[wc$dist<30000, ]   #assume nobody walks/cycle>30Km
 
@@ -32,26 +31,27 @@ wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
                    AreaVDMDest  = AreaVDM.y  )
 
 #estimate demand by converted area size + by proximity
-wc$Demandold= wc$DemandOD    #wc$DemandOD1.old = 0.7 * wc$DemandOD ; wc$DemandOD2.old = 0.3 * wc$DemandOD
-#wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-1.1 * wc$dist)
-wc$DemandOD1 = 0.7 * wc$DemandOD * 
+wc$Demandold= wc$DemandOD
+#wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-1.1 * wc$dist) 
+wc$DemandOD1.old = 0.85 * wc$DemandOD
+wc$DemandOD2.old = 0.15 * wc$DemandOD
+
+wc$DemandOD1 = 0.85 * wc$DemandOD * 
     exp(2.3431 + (-1.7623 * wc$dist) + (0.14173 * wc$dist^2) + (-0.0035273 * wc$dist^3))/  (1+ exp(2.3431 + (-1.7623 * wc$dist) + (0.14173 * wc$dist^2) + (-0.0035273 * wc$dist^3)))
 
-wc$DemandOD2 = 0.3 * wc$DemandOD * (wc$AreaOrig * wc$AreaDest)  / (wc$AreaVDMOrig*wc$AreaVDMDest)
+wc$DemandOD2 = 0.15 * wc$DemandOD * (wc$AreaOrig * wc$AreaDest)  / (wc$AreaVDMOrig*wc$AreaVDMDest)
 
-wc$DemandOD = wc$DemandOD1 + wc$DemandOD2         #alternative: wc$DemandOD = wc$DemandOD1 * wc$DemandOD2
-demandPost =sum(wc$DemandOD)    #variation after double estimate
+#demandPost =sum(wc$DemandOD)    #variation after double estimate
 
-wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$Origin, wc$Destination), FUN=sum, na.rm=T)   #this could be aggr. by MSOAOrig-MSOADest
-#wc.agg = aggregate(wc[,c('DemandOD'),], by=list(wc$MSOAOrig, wc$MSOADest), FUN=sum, na.rm=T)
-names(wc.agg) = c('Origin', 'Destination', 'DemandAfter')
-#names(wc.agg) = c('MSOAOrig', 'MSOADest', 'DemandAfter')
+wc.agg = aggregate(wc[,c('DemandOD1','DemandOD2'),], by=list(wc$Origin, wc$Destination), FUN=sum, na.rm=T)   #this could be aggr. by MSOAOrig-MSOADest
+names(wc.agg) = c('Origin', 'Destination', 'DemandAfter1','DemandAfter2')
 
 wc= inner_join(wc, wc.agg, by=c("Origin" = "Origin", "Destination" = "Destination"))
 #wc= inner_join(wc, wc.agg, by=c("MSOAOrig" = "MSOAOrig", "MSOADest" = "MSOADest")  )
-wc$DemandOD = wc$DemandOD * wc$Demandold / wc$DemandAfter
+wc$DemandOD1 = wc$DemandOD1 * wc$DemandOD1.old / wc$DemandAfter1
+wc$DemandOD2 = wc$DemandOD2 * wc$DemandOD2.old / wc$DemandAfter2
 
-#wc$DemandOD = wc$DemandOD * wcTotal / afterDemand
+wc$DemandOD = wc$DemandOD1 + wc$DemandOD2
 
 #checks
 wc = arrange(wc, -wc$DemandOD)
@@ -80,7 +80,7 @@ wc[is.na(wc)] = 0
 rm(wu03.gm)
 
 
-sel10minus= ( (wc$Bicycle + wc$On.foot) <=20) |(wc$Bicycle== 0)  | (wc$On.foot== 0)
+sel10minus= ( (wc$Bicycle + wc$On.foot) <=10) |(wc$Bicycle== 0)  | (wc$On.foot== 0)
 sel10plus=  ! sel10minus
 sum(sel10plus)       #flows w. Census data
 
