@@ -30,7 +30,7 @@ rm(car0,car0comm, sel, sel1)
 ################################################
 #         OPTIONAL CHECK : start with L1 car file, previous to geogr. conversion
 ################################################
-car1 <-read.csv('C:/temp/Manchester_Traffic_data/1-Filter95/L1_Car_95_v1.csv',header=T,as.is = T)
+car1 <-read.csv('C:/temp/Manchester_Traffic_data/1-Filter95/L1_Car_95.csv',header=T,as.is = T)
 colnames(car1)
 head(car1)
 car1[ is.na(car1) ] = 0

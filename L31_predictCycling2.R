@@ -32,7 +32,7 @@ wc = dplyr::rename(.data = wc, AreaVDMOrig = AreaVDM.x,
 
 #estimate demand by converted area size + by proximity
 wc$Demandold= wc$DemandOD
-#wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-1.1 * wc$dist) 
+#wc$DemandOD1 = 0.7 * wc$DemandOD * exp(-1.1 * wc$dist)   #old approach I improvised
 wc$DemandOD1.old = 0.85 * wc$DemandOD
 wc$DemandOD2.old = 0.15 * wc$DemandOD
 
