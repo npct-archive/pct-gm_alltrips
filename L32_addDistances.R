@@ -1,4 +1,7 @@
 
+# input: the total traffic flows (gm.od)
+# outputs:  the same, but with distances-elevations...
+
 rm(list=ls())
 library(stplanr)
 library(dplyr)

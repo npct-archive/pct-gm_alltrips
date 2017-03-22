@@ -137,6 +137,7 @@ sum(wc$CycleGM)
 dropcols = grep(pattern = 'sel',x = ls())
 rm(list=ls()[dropcols])
 
+# flag 'wrong' flows where cycling demand comes out higher than total demand
 sum(wc$CycleGM > wc$DemandOD)
 wc$CycleGM[wc$CycleGM > wc$DemandOD]= wc$DemandOD[wc$CycleGM > wc$DemandOD]    #no negative totals for w+c
 

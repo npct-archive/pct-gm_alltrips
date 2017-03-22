@@ -6,6 +6,7 @@ rm(list=ls())
 library("readstata13")
 library(dplyr)
 
+#replace paths by you local directory
 area_hw = read.csv('C:/temp/Manchester_Traffic_data/2-L2_L3_level/Areas_Highways.csv',header=T, as.is=T)
 area_pt = read.csv('C:/temp/Manchester_Traffic_data/2-L2_L3_level/Areas_PT.csv',header=T, as.is=T)
 area_vdm = read.csv('C:/temp/Manchester_Traffic_data/2-L2_L3_level/Areas_VDM.csv',header=T, as.is=T)   
@@ -21,7 +22,7 @@ car0comm <- subset(x = car0,UserClass==1)
 sel= (car0comm$TimeID==2)
 sel1 = (car0comm$TimeID !=2)
 sum(car0comm$DemandN[sel]) * 6 + sum(car0comm$DemandN[sel1])   
-#commuters demand for whole day~ 1.82 M (people/trips)
+#commuters demand for whole day~ 1.9 M (people/trips)
 
 head(car0comm)
 tail(car0comm)
@@ -56,6 +57,9 @@ colnames(car)
 colnames(car)[c(9,10)]= c('AreaHighwayOrig','AreaHighwayDest')
 
 ############# GLOBAL METHOD (split demand proportional to area MSOA/area zone)
+## allocates the total demand per MSOA zone, derived and aggregated from the traffic zones
+## the method is pro-rrata: large *origin* zones contribute more to destination MSOA than small ones, and
+## the same applies to destinations: large MSOAs GET more traffic than small MSOA
 
 #method for driver figures
 car$xDemand <- car$DDriv *  car$AreaOrig / car$AreaHighwayOrig  
@@ -68,7 +72,7 @@ sum(carDriver$DemandDriver)  #checking demand is unchanged: ~3.268 M
 carDriver$DemandDriver <- round(carDriver$DemandDriver, 0)
 
 
-#same for passenger
+#same for passenger demand
 car$xDemand <- car$DPass *  car$AreaOrig / car$AreaHighwayOrig  
 car$xyDemand <- car$xDemand * car$yDemand
 
@@ -127,8 +131,10 @@ walkfile <- 'C:/temp/Manchester_Traffic_data/2-L2_L3_level/L2_WC_MSOA.Rds'
 wc <- readRDS(walkfile)  #reads L2_WC_MSOA.Rds
 
 ###############################
-###############################  calculate dist min/max/mean:   L30_wcDistances.R
-###############################  predict:                       L31_predictCycling2.R
+###############################  calculate dist min/max/mean: 
+source(L30_wcDistances.R)
+###############################  predict:                       
+source(L31_predictCycling2.R)
 ###############################
 
 
@@ -198,7 +204,7 @@ gm.od <- gm.od[,c(1:2,8,3:7)]
 saveRDS(gm.od, './L4/gm.od.rds')
 
 #only execute if not run before
-#source('L32_addDistances.R')   #add distances to flows using stplanr (latest, from github)
+#source('L32_addDistances.R')   #add distances to flows using stplanr (latest, from github). Needed for scenarios
 rm(list=ls())
 
 
